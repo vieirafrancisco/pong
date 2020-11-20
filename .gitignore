@@ -1,2 +1,4 @@
 # folders
 __pycache__/
+.vscode/
+pong.egg-info/
