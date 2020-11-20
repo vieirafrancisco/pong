@@ -1,6 +1,7 @@
 import pygame
 
 from pong.settings import WIDTH, HEIGHT
+from pong.settings import NO_COLLISION, PLAYER_COLLISION, OUTBOUNDS
 
 
 class Ball(pygame.sprite.Sprite):
@@ -24,17 +25,17 @@ class Ball(pygame.sprite.Sprite):
            1: collisition with player
            2: outbounds
         """
-        resp = 0
+        resp = NO_COLLISION
         self.posx += self.x_dir
         self.posy += self.y_dir
         if self.posy < 0 or self.posy > HEIGHT+10:
             self.y_dir *= -1
         if self.has_collided:
-            resp = 1
+            resp = PLAYER_COLLISION
             self.x_dir *= -1
             self.posx += 10 * self.x_dir
         if self.is_outbounds:
-            resp = 2
+            resp = OUTBOUNDS
             self.posx = WIDTH//2
             self.posy = HEIGHT//2
         self.rect.center = (self.posx, self.posy)
