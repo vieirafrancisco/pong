@@ -59,22 +59,8 @@ class PongGame:
          (255,255,255), WIDTH//2-5, 0, 32)
 
     def loop(self):
-        pygame.display.set_caption(f"Pong - FPS: {round(self.clock.get_fps(), 1)}")
-        positions = self.client.send_position(self.player1.pos, self.ball.pos, self.score)
-        if self.client.is_host:
-            resp = self.ball.update()
-            if resp == 2 and self.ball.x_dir < 0:
-                self.score[1]+=1
-            elif resp == 2 and self.ball.x_dir > 0:
-                self.score[0]+=1
-            print(self.score)
-        else:
-            self.ball.set_pos(*positions.ball_pos)
-            self.score = positions.score
-            
-        self.player2.update(*positions.other_player_pos)
+        self.client.update(self)
         self.player1.move()
-        
 
     def event(self, event):
         if event.type == pygame.QUIT:
@@ -86,6 +72,7 @@ class PongGame:
             for event in pygame.event.get():
                 self.event(event)
             self.surface.fill((0,0,0))
+            pygame.display.set_caption(f"Pong - FPS: {round(self.clock.get_fps(), 1)}")
             if self.client.is_playable:
                 self.loop()
                 self.render()

@@ -1,12 +1,13 @@
-
 import logging
 import socket
 import random
+
 from pong.socket_utils import read_json_response, sendall_json
-from pong.settings import HOST, PORT
+from pong.settings import HOST, PORT, OUTBOUNDS
 from pong.client.response import Response
 
 logger = logging.getLogger(__name__)
+
 
 class Client:
     def __init__(self):
@@ -49,6 +50,23 @@ class Client:
         
         sendall_json(self.socket, head)
         return Response(**read_json_response(self.socket))
+
+    def update(self, game):
+        response = self.send_position(
+            game.player1.pos,
+            game.ball.pos,
+            game.score
+        )
+        if self.is_host:
+            resp = game.ball.update()
+            if resp == OUTBOUNDS and game.ball.x_dir < 0:
+                game.score[1]+=1
+            elif resp == OUTBOUNDS and game.ball.x_dir > 0:
+                game.score[0]+=1
+        else:
+            game.ball.set_pos(*response.ball_pos)
+            game.score = response.score
+        game.player2.update(*response.other_player_pos)
 
     @property
     def is_playable(self):
