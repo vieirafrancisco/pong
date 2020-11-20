@@ -28,26 +28,21 @@ class PongGame:
         self.surface = None
         self.clock = pygame.time.Clock()
 
-    def init(self):
+    def new(self):
         pygame.init()
         pygame.font.init()
-        self.client = Client()
-        self.client.connect_server()
         self.running = True
         self.surface = pygame.display.set_mode(self.size)
-        pygame.display.set_caption("Pong")
         self.sprites = pygame.sprite.Group()
-
-        if self.client.is_host:
-            self.player1 = Player(self, 10, HEIGHT//2)
-            self.player2 = Player(self, WIDTH-10, HEIGHT//2)
-        else:
-            self.player1 = Player(self, WIDTH-10, HEIGHT//2)
-            self.player2 = Player(self, 10, HEIGHT//2)
-
+        pygame.display.set_caption("Pong")
         self.ball = Ball(self)
+        self.player1 = Player(self)
+        self.player2 = Player(self)
         self.score = [0, 0]
-        
+
+        # client
+        self.client = Client(self, connect=True)
+        self.client.set_players_positions()
         
     def cleanup(self):
         pygame.font.quit()
@@ -59,7 +54,7 @@ class PongGame:
          (255,255,255), WIDTH//2-5, 0, 32)
 
     def loop(self):
-        self.client.update(self)
+        self.client.update()
         self.player1.move()
 
     def event(self, event):
@@ -67,7 +62,7 @@ class PongGame:
             self.running = False
 
     def execute(self):
-        self.init()
+        self.new()
         while(self.running):
             for event in pygame.event.get():
                 self.event(event)

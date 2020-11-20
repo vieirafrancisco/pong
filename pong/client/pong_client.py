@@ -4,13 +4,15 @@ import random
 
 from pong.socket_utils import read_json_response, sendall_json
 from pong.settings import HOST, PORT, OUTBOUNDS
+from pong.settings import WIDTH, HEIGHT
 from pong.client.response import Response
 
 logger = logging.getLogger(__name__)
 
 
 class Client:
-    def __init__(self):
+    def __init__(self, game, connect=False):
+        self.game = game
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connected = False
         self.match_id = None
@@ -18,6 +20,8 @@ class Client:
         self.ready = False
         self.is_host = False
         self._is_playable = False
+        if connect:
+            self.connect_server()
 
     def connect_server(self, host=HOST, port=PORT):
         logger.info(f"trying to connect to server with host: {host} and port: {port}")
@@ -27,7 +31,6 @@ class Client:
         self.player_id = response.get('player_id', None)
         self.match_id = response.get('match_id', None)
         self.is_host = response.get("is_host", None)
-        print("teste", self.is_host)
 
         if self.player_id is None or self.match_id is None or self.is_host is None:
             raise Exception(f"format error in server response, host: {host}, port: {port}")
@@ -51,22 +54,30 @@ class Client:
         sendall_json(self.socket, head)
         return Response(**read_json_response(self.socket))
 
-    def update(self, game):
+    def set_players_positions(self):
+        if self.is_host:
+            self.game.player1.set_pos(10, HEIGHT//2)
+            self.game.player2.set_pos(WIDTH-10, HEIGHT//2)
+        else:
+            self.game.player1.set_pos(WIDTH-10, HEIGHT//2)
+            self.game.player2.set_pos(10, HEIGHT//2)
+
+    def update(self):
         response = self.send_position(
-            game.player1.pos,
-            game.ball.pos,
-            game.score
+            self.game.player1.pos,
+            self.game.ball.pos,
+            self.game.score
         )
         if self.is_host:
-            resp = game.ball.update()
-            if resp == OUTBOUNDS and game.ball.x_dir < 0:
-                game.score[1]+=1
-            elif resp == OUTBOUNDS and game.ball.x_dir > 0:
-                game.score[0]+=1
+            resp = self.game.ball.update()
+            if resp == OUTBOUNDS and self.game.ball.x_dir < 0:
+                self.game.score[1]+=1
+            elif resp == OUTBOUNDS and self.game.ball.x_dir > 0:
+                self.game.score[0]+=1
         else:
-            game.ball.set_pos(*response.ball_pos)
-            game.score = response.score
-        game.player2.update(*response.other_player_pos)
+            self.game.ball.set_pos(*response.ball_pos)
+            self.game.score = response.score
+        self.game.player2.set_pos(*response.other_player_pos)
 
     @property
     def is_playable(self):
