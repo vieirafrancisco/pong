@@ -18,6 +18,8 @@ class PongPlayer():
         self.posy = posy
 
 class PongMatch():
+    matchs = {}
+
     def __init__(self):
         self.match_id = str(uuid.uuid1())
         self.ball_pos = (0.5, 0.5)
@@ -27,6 +29,8 @@ class PongMatch():
         self.dx = 5
         self.dy = 5
         self.is_playable = False
+        self.matchs[self.match_id] = self
+        self.is_closed = False
 
     def get_response(self, player_id):
         player2 = self.player2
@@ -63,3 +67,6 @@ class PongMatch():
             self.player2.update_position(*player_pos)
         else:
             raise Exception(f"player with id {player_id} doen't exist in match {self.match_id}")
+
+    def close(self):
+        self.is_closed = True
