@@ -5,14 +5,14 @@ import threading
 from pong.server.match import PongMatch
 from pong.server.request_handler import handle_request
 from pong.settings import HOST, PORT
-from pong.socket_utils import read_json_response, sendall_json
+from pong.socket_utils import CustomSocket, read_json_response
 
 logger = logging.getLogger(__name__)
 match = PongMatch()
 
 class Server:
     def __init__(self, host=HOST, port=PORT):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket = CustomSocket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = host
         self.port = port
         self.matchs = ServerMatchs(self)
