@@ -17,7 +17,7 @@ class Menu(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (0,0)
         self.quit_button = Button(game, WIDTH-30, HEIGHT-50, 40, 30, 'Sair', self.game.cleanup)
-        self.enter_match_button = Button(game, WIDTH//2, HEIGHT-150, 200, 30, 'Partida Online', test_callback)
+        self.enter_match_button = Button(game, WIDTH//2, HEIGHT-150, 200, 30, 'Partida Online', self.play_online_callback)
         self.enter_already_created_match_button = Button(game, WIDTH//2, HEIGHT-110, 250, 30, 'Entrar em partida existente', test_callback)
         self.buttons = [self.quit_button, self.enter_match_button, self.enter_already_created_match_button]
 
@@ -26,6 +26,9 @@ class Menu(pygame.sprite.Sprite):
             self.game.cleanup()
         for button in self.buttons:
             button.handle_event(event)
+
+    def play_online_callback(self):
+        self.game.playing = True
 
 
 class Button(pygame.sprite.Sprite):
