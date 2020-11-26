@@ -3,7 +3,7 @@ import socket
 import random
 
 from pong.socket_utils import read_json_response, sendall_json
-from pong.settings import HOST, PORT, OUTBOUNDS
+from pong.settings import HOST, PORT
 from pong.settings import WIDTH, HEIGHT
 from pong.client.response import Response
 
@@ -68,13 +68,8 @@ class Client:
             self.game.ball.pos,
             self.game.score
         )
-        if self.is_host:
-            resp = self.game.ball.update()
-            if resp == OUTBOUNDS and self.game.ball.x_dir < 0:
-                self.game.score[1]+=1
-            elif resp == OUTBOUNDS and self.game.ball.x_dir > 0:
-                self.game.score[0]+=1
-        else:
+        
+        if not self.is_host:
             self.game.ball.set_pos(*response.ball_pos)
             self.game.score = response.score
         self.game.player2.set_pos(*response.other_player_pos)

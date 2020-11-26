@@ -1,6 +1,6 @@
 import pygame
 
-from pong.settings import WIDTH, HEIGHT
+from pong.settings import WIDTH, HEIGHT, OUTBOUNDS
 from pong.game.player import Player
 from pong.game.ball import Ball
 from pong.client.pong_client import Client
@@ -48,6 +48,14 @@ class PongGame:
         pygame.font.quit()
         pygame.quit()
 
+    def ball_update(self):
+        if self.client.is_host:
+            resp = self.ball.update()
+            if resp == OUTBOUNDS and self.ball.x_dir < 0:
+                self.score[1]+=1
+            elif resp == OUTBOUNDS and self.ball.x_dir > 0:
+                self.score[0]+=1
+
     def render(self):
         self.sprites.draw(self.surface)
         draw_text(self.surface, f'{self.score[0]} x {self.score[1]}',
@@ -56,6 +64,7 @@ class PongGame:
     def loop(self):
         self.client.update()
         self.player1.move()
+        self.ball_update()
 
     def event(self, event):
         if event.type == pygame.QUIT:
