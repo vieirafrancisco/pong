@@ -19,7 +19,8 @@ class Menu(pygame.sprite.Sprite):
         self.quit_button = Button(game, WIDTH-30, HEIGHT-50, 40, 30, 'Sair', self.game.cleanup)
         self.enter_match_button = Button(game, WIDTH//2, HEIGHT-150, 200, 30, 'Partida Online', self.play_online_callback)
         self.enter_already_created_match_button = Button(game, WIDTH//2, HEIGHT-110, 250, 30, 'Entrar em partida existente', test_callback)
-        self.buttons = [self.quit_button, self.enter_match_button, self.enter_already_created_match_button]
+        self.create_match = Button(game, WIDTH//2, HEIGHT-70, 250, 30, 'Criar Partida', self.create_match_callback)
+        self.buttons = [self.quit_button, self.enter_match_button, self.enter_already_created_match_button, self.create_match]
 
     def handle_event(self, event):
         if event.type == pygame.QUIT:
@@ -29,6 +30,9 @@ class Menu(pygame.sprite.Sprite):
 
     def play_online_callback(self):
         self.game.playing = True
+
+    def create_match_callback(self):
+        return self.game.client
 
 
 class Button(pygame.sprite.Sprite):

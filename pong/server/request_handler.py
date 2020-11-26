@@ -1,6 +1,7 @@
 import json
 from pong.server.match import PongMatch
 from pong.socket_utils import sendall_json
+from pong.settings import RequestCodes as r_code
 
 request_funcs = {}
 
@@ -28,7 +29,7 @@ def handle_request(server, conn, addr, body):
 
     sendall_json(conn, response)
 
-@request(code=0)
+@request(code=r_code.CREATE_MATCH)
 def create_match(request):
     """ 
     Create a match in server.
@@ -39,7 +40,8 @@ def create_match(request):
         player_id: str
 
     """
-    match = request["server"].matchs.create_match()
+    matchs = request["server"].matchs
+    match = matchs.create_custom_match()
     player = match.add_player(1000, 10)
 
     return {
@@ -47,7 +49,7 @@ def create_match(request):
         "player_id": player.id
     }
 
-@request(code=1)
+@request(code=r_code.CONNECT_MATCH)
 def connect_match(request, match_id):
     """
     Connect to a match in server
@@ -60,7 +62,12 @@ def connect_match(request, match_id):
         player_id: str
     """
     matchs = request["server"].matchs
-    match = matchs.get_match_by_id(match_id)
+
+    if match_id == None:
+        match = matchs.get_random_match()
+    else:
+        match = matchs.get_match_by_id(match_id)
+
     player = match.add_player(100, 10)
 
     return {
@@ -70,7 +77,11 @@ def connect_match(request, match_id):
     }
 
 
-@request(code=2)
+@request(code=r_code.DISCONNECT_GAME)
+def disconnect_game(request, player_id, match_id):
+    pass
+
+@request(code=r_code.IS_PLAYABLE)
 def is_playable(request, match_id):
     """
     Return if an match is playable
@@ -85,7 +96,7 @@ def is_playable(request, match_id):
     match = matchs.get_match_by_id(match_id)
     return {"is_playable" : match.is_playable}
 
-@request(code=3)
+@request(code=r_code.UPDATE_GAME)
 def update_game(request, match_id, player_id, 
                 player_pos, ball_pos, score):
     """ 
@@ -110,7 +121,7 @@ def update_game(request, match_id, player_id,
 
     return match.get_response(player_id)
 
-@request(code=4)
+@request(code=r_code.MATCH_LIST)
 def get_match_list(request):
     """ 
     Return an list of server matchs
@@ -123,4 +134,11 @@ def get_match_list(request):
             name: str
     
     """
-    pass
+    match_list = []
+    matchs = request["server"].matchs
+    for match in matchs.custom_matchs:
+        if not match.is_playable:
+            match_list.append({
+                "match_id": match.id,
+                "match_name": "test"
+            })

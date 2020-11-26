@@ -2,13 +2,16 @@ import json
 import socket
 import logging
 import threading
+from threading import Lock
 from pong.server.match import PongMatch
 from pong.server.request_handler import handle_request
 from pong.settings import HOST, PORT
 from pong.socket_utils import CustomSocket, read_json_response
 
+
 logger = logging.getLogger(__name__)
 match = PongMatch()
+lock_fast_match = Lock()
 
 class Server:
     def __init__(self, host=HOST, port=PORT):
@@ -47,14 +50,34 @@ class ServerMatchs:
     def __init__(self, server):
         self.server = server
         self.matchs = {}
-
-
+        self.custom_matchs = []
+        self.fast_match = None
+        
     def get_match_by_id(self, match_id):
-        return default_match
-
+        return self.matchs[match_id]
 
     def create_match(self, *args, **kwargs):
         match = PongMatch(*args, **kwargs)
         self.matchs[match.match_id] = match
 
         return match
+
+    def create_custom_match(self):
+        match = self.create_match()
+        self.custom_matchs.append(match)
+
+        return match
+
+    def get_random_match(self):
+        lock_fast_match.acquire()
+        if self.fast_match == None:
+            self.fast_match = self.create_match()
+            fast_match = self.fast_match
+        else:
+            fast_match = self.fast_match
+            self.fast_match = None
+        lock_fast_match.release()
+
+        return fast_match
+        
+    

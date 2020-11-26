@@ -30,10 +30,20 @@ class PongGame:
         self.score = [0, 0]
         self.menu = Menu(self)
         self.playing = False
-
+        self._client = None
+        
     def init_client(self):
-        self.client = Client(self, connect=True)
-        self.client.set_players_positions()
+        self._client = Client(self, connect=True)
+        self._client.player.connect_match(None)
+        self._client.set_players_positions()
+
+    @property
+    def client(self):
+        # if self._client is None:
+        #     self.init_client()
+        
+        # return self._client
+        return self._client
     
     def cleanup(self):
         pygame.font.quit()
@@ -41,7 +51,7 @@ class PongGame:
         sys.exit(2)
 
     def ball_update(self):
-        if self.client.is_host:
+        if self.client.player.is_host:
             resp = self.ball.update()
             if resp == OUTBOUNDS and self.ball.x_dir < 0:
                 self.score[1]+=1
