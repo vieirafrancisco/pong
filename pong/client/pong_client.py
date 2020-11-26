@@ -1,15 +1,19 @@
-
 import logging
 import socket
 import random
+
 from pong.socket_utils import CustomSocket
+from pong.socket_utils import read_json_response, sendall_json
 from pong.settings import HOST, PORT
+from pong.settings import WIDTH, HEIGHT
 from pong.client.response import Response
 
 logger = logging.getLogger(__name__)
 
+
 class Client:
     def __init__(self):
+        self.game = game
         self.socket = CustomSocket()
         self.connected = False
         self.match_id = None
@@ -17,10 +21,13 @@ class Client:
         self.ready = False
         self.is_host = False
         self._is_playable = False
+        if connect:
+            self.connect_server()
 
     def connect_server(self, host=HOST, port=PORT):
         logger.info(f"trying to connect to server with host: {host} and port: {port}")
         self.socket.connect((host, port))
+        
         resp = self.socket.send_read_json({
             'code': 1, 
             'params': {"match_id": None}}
@@ -50,6 +57,26 @@ class Client:
         
         resp = self.socket.send_read_json({"code": 3, "params": head})
         return Response(**resp)
+
+    def set_players_positions(self):
+        if self.is_host:
+            self.game.player1.set_pos(10, HEIGHT//2)
+            self.game.player2.set_pos(WIDTH-10, HEIGHT//2)
+        else:
+            self.game.player1.set_pos(WIDTH-10, HEIGHT//2)
+            self.game.player2.set_pos(10, HEIGHT//2)
+
+    def update(self):
+        response = self.send_position(
+            self.game.player1.pos,
+            self.game.ball.pos,
+            self.game.score
+        )
+        
+        if not self.is_host:
+            self.game.ball.set_pos(*response.ball_pos)
+            self.game.score = response.score
+        self.game.player2.set_pos(*response.other_player_pos)
 
     @property
     def is_playable(self):
