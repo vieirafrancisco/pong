@@ -29,11 +29,12 @@ class PongGame:
         self.player2 = Player(self)
         self.score = [0, 0]
         self.menu = Menu(self)
+        self.playing = False
 
-        # client
-        self.client = Client(self, connect=False)
-        #self.client.set_players_positions()
-        
+    def init_client(self):
+        self.client = Client(self, connect=True)
+        self.client.set_players_positions()
+    
     def cleanup(self):
         pygame.font.quit()
         pygame.quit()
@@ -41,7 +42,7 @@ class PongGame:
 
     def render(self):
         self.sprites.draw(self.surface)
-        draw_text(self.surface, f'{self.score[0]} x {self.score[1]}',
+        PongGame.draw_text(self.surface, f'{self.score[0]} x {self.score[1]}',
          (255,255,255), WIDTH//2-5, 0, 32)
 
     def loop(self):
@@ -53,7 +54,7 @@ class PongGame:
             self.running = False
 
     def execute(self):
-        self.new()
+        self.init_client()
         while(self.running):
             for event in pygame.event.get():
                 self.event(event)
@@ -69,7 +70,7 @@ class PongGame:
         self.cleanup()
 
     def menu_screen(self):
-        while True:
+        while not self.playing:
             for event in pygame.event.get():
                 self.menu.handle_event(event)
             self.menu_widgets.draw(self.surface)
@@ -78,7 +79,7 @@ class PongGame:
     def show_waiting_window(self):
         surface = pygame.Surface((WIDTH, HEIGHT))
         surface.fill((162, 166, 166))
-        draw_text(surface, "Waiting opponent!", (66, 123, 245), 180, 225, 48)
+        PongGame.draw_text(surface, "Waiting opponent!", (66, 123, 245), 180, 225, 48)
         self.surface.blit(surface, (0,0))
 
     @staticmethod
