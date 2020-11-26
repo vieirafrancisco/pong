@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class Client:
-    def __init__(self):
+    def __init__(self, game, connect=False):
         self.game = game
         self.socket = CustomSocket()
         self.connected = False
