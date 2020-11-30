@@ -22,7 +22,6 @@ class PongGame:
         self.running = True
         self.surface = pygame.display.set_mode(self.size)
         self.sprites = pygame.sprite.Group()
-        self.menu_widgets = pygame.sprite.Group()
         pygame.display.set_caption("Pong")
         self.ball = Ball(self)
         self.player1 = Player(self)
@@ -92,7 +91,7 @@ class PongGame:
         while not self.playing:
             for event in pygame.event.get():
                 self.menu.handle_event(event)
-            self.menu_widgets.draw(self.surface)
+            self.menu.draw(self.surface)
             pygame.display.flip()
 
     def show_waiting_window(self):

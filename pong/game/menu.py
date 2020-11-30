@@ -5,48 +5,97 @@ from pong.settings import WIDTH, HEIGHT
 def test_callback():
     print('yeyy')
 
+def draw_text(surface, text, color, x, y, size, align='topleft', font_name='Comic Sans MS'):
+    font = pygame.font.SysFont(font_name, size)
+    text_surface = font.render(text, True, color)
+    text_rect = text_surface.get_rect()
+    if align == 'center':
+        text_rect.center = (x, y)
+    elif align == 'topleft':
+        text_rect.topleft = (x, y)
+    surface.blit(text_surface, text_rect)
 
-class Menu(pygame.sprite.Sprite):
+
+class Menu:
     def __init__(self, game):
-        groups = [game.menu_widgets]
-        super().__init__(groups)
         self.game = game
+        self.windows = [MainMenuWindow(self), MatchListWindow(self)]
+        self.curr_window = 0
+
+    def draw(self, surface):
+        self.windows[self.curr_window].group.draw(surface)
+
+    def toggle_window(self):
+        self.curr_window = (self.curr_window + 1) % len(self.windows)
+
+    def cleanup(self):
+        self.game.cleanup()
+
+    def play_online(self):
+        self.game.playing = True
+
+    def handle_event(self, event):
+        if event.type == pygame.QUIT:
+            self.cleanup
+        self.windows[self.curr_window].handle_event(event)
+
+
+class MainMenuWindow(pygame.sprite.Sprite):
+    def __init__(self, menu):
+        self.group = pygame.sprite.Group()
+        super().__init__([self.group])
+        self.menu = menu
         self.image = pygame.Surface((WIDTH, HEIGHT))
         self.image.fill((0,0,0))
-        self.game.draw_text(self.image, 'Pong', (255,255,255), WIDTH//2-65, 125, 50, align='topleft')
+        draw_text(self.image, 'Pong:', (255,255,255), WIDTH//2-50, 50, 50, align='topleft')
         self.rect = self.image.get_rect()
         self.rect.topleft = (0,0)
-        self.quit_button = Button(game, WIDTH-30, HEIGHT-50, 40, 30, 'Sair', self.game.cleanup)
-        self.enter_match_button = Button(game, WIDTH//2, HEIGHT-150, 200, 30, 'Partida Online', self.play_online_callback)
-        self.enter_already_created_match_button = Button(game, WIDTH//2, HEIGHT-110, 250, 30, 'Entrar em partida existente', test_callback)
-        self.create_match = Button(game, WIDTH//2, HEIGHT-70, 250, 30, 'Criar Partida', self.create_match_callback)
+        self.quit_button = Button(self.group, WIDTH-30, HEIGHT-50, 40, 30, 'Sair', self.menu.cleanup)
+        self.enter_match_button = Button(self.group, WIDTH//2, HEIGHT-150, 200, 30, 'Partida Online', self.menu.play_online)
+        self.enter_already_created_match_button = Button(self.group, WIDTH//2, HEIGHT-110, 250, 30, 'Entrar em partida existente', self.menu.toggle_window)
+        self.create_match = Button(self.group, WIDTH//2, HEIGHT-70, 250, 30, 'Criar Partida', test_callback)
         self.buttons = [self.quit_button, self.enter_match_button, self.enter_already_created_match_button, self.create_match]
 
     def handle_event(self, event):
         if event.type == pygame.QUIT:
-            self.game.cleanup()
+            self.menu.cleanup()
         for button in self.buttons:
             button.handle_event(event)
 
-    def play_online_callback(self):
-        self.game.playing = True
+
+class MatchListWindow(pygame.sprite.Sprite):
+    def __init__(self, menu):
+        self.group = pygame.sprite.Group()
+        super().__init__([self.group])
+        self.menu = menu
+        self.image = pygame.Surface((WIDTH, HEIGHT))
+        self.image.fill((0,0,0))
+        draw_text(self.image, 'Lista de Partidas:', (255,255,255), WIDTH//2-100, 50, 30, align='topleft')
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (0,0)
+        self.menu_button = Button(self.group, WIDTH-50, HEIGHT-50, 70, 30, 'Menu', self.menu.toggle_window)
+        self.buttons = [self.menu_button]
+
+    def handle_event(self, event):
+        if event.type == pygame.QUIT:
+            self.menu.cleanup()
+        for button in self.buttons:
+            button.handle_event(event)
 
     def create_match_callback(self):
         return self.game.client
 
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self, game, x, y, w, h, text, callback):
-        groups = [game.menu_widgets]
-        super().__init__(groups)
-        self.game = game
+    def __init__(self, group, x, y, w, h, text, callback):
+        super().__init__([group])
         self.x = x
         self.y = y
         self.text = text
         self.callback = callback
         self.image = pygame.Surface((w, h))
         self.image.fill((0,0,0))
-        self.game.draw_text(self.image, text, (255,255,255), w//2, h//2, 18, align='center')
+        draw_text(self.image, text, (255,255,255), w//2, h//2, 18, align='center')
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         pygame.draw.rect(self.image, (255,255,255), (0,0,w,h), width=2)
