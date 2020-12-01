@@ -33,13 +33,13 @@ class PongGame:
         
     def init_client(self):
         self._client = Client(self, connect=True)
-        self._client.player.connect_match(None)
-        self._client.set_players_positions()
+        #self._client.player.connect_match(None)
+        #self._client.set_players_positions()
 
     @property
     def client(self):
-        # if self._client is None:
-        #     self.init_client()
+        if self._client is None:
+            self.init_client()
         
         # return self._client
         return self._client
@@ -72,7 +72,6 @@ class PongGame:
             self.running = False
 
     def execute(self):
-        self.init_client()
         while(self.running):
             for event in pygame.event.get():
                 self.event(event)
@@ -93,6 +92,7 @@ class PongGame:
                 self.menu.handle_event(event)
             self.menu.draw(self.surface)
             pygame.display.flip()
+    
 
     def show_waiting_window(self):
         surface = pygame.Surface((WIDTH, HEIGHT))

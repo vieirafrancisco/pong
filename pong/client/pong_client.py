@@ -24,6 +24,15 @@ class ClientPlayer():
         self.id = resp["player_id"]
         self.is_host = resp["is_host"]
         self.connected_match = True
+        self.client.set_players_positions()
+
+    def create_match(self):
+        resp = self.client.send_request(r_code.CREATE_MATCH, {})
+        self.match_id = resp["match_id"]
+        self.id = resp["player_id"]
+        self.is_host = resp["is_host"]
+        self.connected_match = True
+        self.client.set_players_positions()
 
     def disconnect_match(self):
         if not self.connected_match:

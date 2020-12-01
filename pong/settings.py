@@ -6,7 +6,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 # server
 HOST = '127.0.0.1'
-PORT = 65433
+PORT = 65434
 
 # server request codes
 class RequestCodes():
