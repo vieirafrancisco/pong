@@ -45,6 +45,10 @@ python run-game.py
 python run-game.py
 ```
 
+## Dupla
+Jadson Lucio
+Francisco Neto
+
 ## Contribuições:
 Fique a vontade para contribuir :)
 
