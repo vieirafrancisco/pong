@@ -38,7 +38,7 @@ def create_match(request):
     response body:
         match_id: str,
         player_id: str
-
+        is_host: bool
     """
     matchs = request["server"].matchs
     match = matchs.create_custom_match()
@@ -46,7 +46,8 @@ def create_match(request):
 
     return {
         "match_id": match.match_id,
-        "player_id": player.id
+        "player_id": player.id, 
+        "is_host": player.is_host
     }
 
 @request(code=r_code.CONNECT_MATCH)
@@ -60,6 +61,7 @@ def connect_match(request, match_id):
     response body: 
         match_id: str
         player_id: str
+        is_host: bool
     """
     matchs = request["server"].matchs
 
@@ -136,9 +138,11 @@ def get_match_list(request):
     """
     match_list = []
     matchs = request["server"].matchs
-    for match in matchs.custom_matchs:
+    for i, match in enumerate(matchs.custom_matchs):
         if not match.is_playable:
             match_list.append({
-                "match_id": match.id,
-                "match_name": "test"
+                "match_id": match.match_id,
+                "match_name": f"partida {i}"
             })
+
+    return {"match_list": match_list}

@@ -1,5 +1,5 @@
 import pygame
-
+from functools import partial
 from pong.settings import WIDTH, HEIGHT
 
 def test_callback():
@@ -27,17 +27,22 @@ class Menu:
 
     def toggle_window(self):
         self.curr_window = (self.curr_window + 1) % len(self.windows)
+        self.windows[self.curr_window].show()
 
     def cleanup(self):
         self.game.cleanup()
 
-    def play_online(self):
+    def play_queue(self):
         self.game.playing = True
+        self.game.client.player.connect_match(None)
 
     def handle_event(self, event):
         if event.type == pygame.QUIT:
             self.cleanup
         self.windows[self.curr_window].handle_event(event)
+
+    def show(self):
+        pass
 
 
 class MainMenuWindow(pygame.sprite.Sprite):
@@ -51,9 +56,9 @@ class MainMenuWindow(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (0,0)
         self.quit_button = Button(self.group, WIDTH-30, HEIGHT-50, 40, 30, 'Sair', self.menu.cleanup)
-        self.enter_match_button = Button(self.group, WIDTH//2, HEIGHT-150, 200, 30, 'Partida Online', self.menu.play_online)
+        self.enter_match_button = Button(self.group, WIDTH//2, HEIGHT-150, 200, 30, 'Partida Online', self.menu.play_queue)
         self.enter_already_created_match_button = Button(self.group, WIDTH//2, HEIGHT-110, 250, 30, 'Entrar em partida existente', self.menu.toggle_window)
-        self.create_match = Button(self.group, WIDTH//2, HEIGHT-70, 250, 30, 'Criar Partida', test_callback)
+        self.create_match = Button(self.group, WIDTH//2, HEIGHT-70, 250, 30, 'Criar Partida', self.create_match_callback)
         self.buttons = [self.quit_button, self.enter_match_button, self.enter_already_created_match_button, self.create_match]
 
     def handle_event(self, event):
@@ -61,6 +66,13 @@ class MainMenuWindow(pygame.sprite.Sprite):
             self.menu.cleanup()
         for button in self.buttons:
             button.handle_event(event)
+
+    def create_match_callback(self):
+        self.menu.game.client.player.create_match()
+        self.menu.game.playing = True
+
+    def show(self):
+        pass
 
 
 class MatchListWindow(pygame.sprite.Sprite):
@@ -75,16 +87,38 @@ class MatchListWindow(pygame.sprite.Sprite):
         self.rect.topleft = (0,0)
         self.menu_button = Button(self.group, WIDTH-50, HEIGHT-50, 70, 30, 'Menu', self.menu.toggle_window)
         self.buttons = [self.menu_button]
-
+        self.base_buttons = self.buttons
+        self.match_list = []
+        
     def handle_event(self, event):
         if event.type == pygame.QUIT:
             self.menu.cleanup()
         for button in self.buttons:
             button.handle_event(event)
 
-    def create_match_callback(self):
-        return self.game.client
+        self.update_match_list()
 
+    def update_match_list(self):
+        match_list = self.menu.game.client.get_matchs()["match_list"]
+
+        if match_list != self.match_list:
+            self.match_list = match_list
+            self.render_match_list()
+
+    def show(self):
+        pass
+
+    def render_match_list(self):
+        def connect_match(match_id):
+            self.menu.game.playing = True
+            self.menu.game.client.player.connect_match(match_id)
+
+        button_matchs = []
+        for i, match in enumerate(self.match_list):
+            button_matchs.append(Button(self.group, WIDTH//2, HEIGHT-350+35*i, 200, 30, 
+                                        match["match_name"], partial(connect_match, match_id=match["match_id"])))
+
+        self.buttons = self.base_buttons + button_matchs
 
 class Button(pygame.sprite.Sprite):
     def __init__(self, group, x, y, w, h, text, callback):
