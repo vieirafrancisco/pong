@@ -9,11 +9,17 @@ Sistemas Distribuidos.
 
 ## Setup:
 
-**Entrar na virtualenv:**
+**Instalar o virtualenv (se não estiver instalado):**
 ```bash
 pip install virtualenv  # pip
 pip3 install virtualenv  # pip3
 sudo apt-get install virtualenv  # linux (ie: Ubuntu20-04)
+```
+### Na pasta principal do projeto executar os seguintes passos:
+
+**Criar o virtualenv:**
+```bash
+virtualenv venv
 ```
 
 **Entrar na virtualenv:**
